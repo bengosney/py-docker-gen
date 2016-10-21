@@ -19,5 +19,7 @@ Options:
 ```
 
 ## Misc
-Jinja2 should be used for more things, it's not just for HTML templates
-[Click](http://click.pocoo.org/6/) is amazing if your doing anything on the command line
+
+Jinja2 should be used for more things, it's not just for HTML templates.
+
+[Click](http://click.pocoo.org/6/) is amazing if your doing anything on the command line.
