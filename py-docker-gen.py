@@ -18,15 +18,14 @@ old_md5 = '0000000000000000000000000'
 @click.command()
 @click.argument('template')
 @click.argument('output')
-@click.option('--filter', default=None)
-@click.option('--listen/--genarate', default=True)
-@click.option('--command', default=None)
+@click.option('--filter', default=None, help='Env Var that must be set for the containers')
+@click.option('--listen/--genarate', default=True, help='Either listen for changes or genrate a file now')
+@click.option('--command', default=None, help='Command to run when the file has been updated')
 def cli(template, output, filter, listen, command):
     if listen:
         listenForEvents(template, output, filter, command)
     else:
         generateTemplate(template, output, filter)
-
 
 def md5File(file):
     return hashlib.md5(open(file, 'rb').read()).hexdigest()
