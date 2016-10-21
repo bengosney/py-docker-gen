@@ -21,9 +21,10 @@ old_md5 = '0000000000000000000000000'
 @click.option('--filter', default=None, help='Env Var that must be set for the containers')
 @click.option('--listen/--genarate', default=True, help='Either listen for changes or genrate a file now')
 @click.option('--command', default=None, help='Command to run when the file has been updated')
-def cli(template, output, filter, listen, command):
+@click.option('--notify', default=None, help='Container to notify of changes')
+def cli(template, output, filter, listen, command, notify):
     if listen:
-        listenForEvents(template, output, filter, command)
+        listenForEvents(template, output, filter, command, notify)
     else:
         generateTemplate(template, output, filter)
 
@@ -53,7 +54,7 @@ def generateTemplate(template_name, output, filter=None):
         f.write(outputText)
     
 
-def listenForEvents(template, output, filter=None, command=None):
+def listenForEvents(template, output, filter=None, command=None, notify=None):
     click.echo('Listening for docker events')
     old_md5 = md5File(output)
     for raw_event in client.events():
@@ -63,10 +64,15 @@ def listenForEvents(template, output, filter=None, command=None):
             generateTemplate(template, output, filter)
             
             new_md5 = md5File(output)
-            if command and new_md5 != old_md5:
+            if new_md5 != old_md5:
                 click.echo('File changed')
                 old_md5 = new_md5
-                subprocess.call(command, shell=True)
+                if command != None:
+                    click.echo("Running %s" % command)
+                    subprocess.call(command, shell=True)
+                if notify != None:
+                    click.echo("Sending SIGHUP to %s" % notify)
+                    client.kill(notify, 1)
             else:
                 click.echo('No change')
 
