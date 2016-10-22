@@ -8,4 +8,4 @@ CMD python /opt/app/py-docker-gen.py \
      --filter hostname \
      --notify nginx-proxy \
      /opt/app/nginx.tpl \
-     /tmp/conf/proxy.conf
+     /etc/nginx/conf.d/proxy.conf
