@@ -2,10 +2,10 @@
 
 echo -e "\e[32mBuilding base image\e[0m"
 
-docker build -t bengosney/py-docker-gen .
+docker build -t bengosney/py-docker-gen-rpi .
 
 echo -e "\e[32mBuilding nginx image\e[0m"
 cd nginx
-docker build -t bengosney/nginx-proxy .
+docker build -t bengosney/nginx-proxy-rpi .
 
 echo -e "\e[32mDone\e[0m"
