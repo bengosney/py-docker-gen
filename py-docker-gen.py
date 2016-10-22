@@ -45,12 +45,12 @@ def md5File(file):
 
 
 def generateTemplate(template_name, output, filter=None):
-    hostfinder = re.compile('%s=.*' % filter)
+    filterregex = re.compile('%s=.*' % filter)
     context = []
 
     for container in client.containers():
         details = client.inspect_container(container['Id'])
-        if filter == None or any(hostfinder.match(env) for env in details['Config']['Env']):
+        if filter == None or any(filterregex.match(env) for env in details['Config']['Env']):
             envs = {}
             for env in details['Config']['Env']:
                 bits = env.split('=')
