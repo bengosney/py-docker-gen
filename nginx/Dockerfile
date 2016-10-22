@@ -7,6 +7,5 @@ COPY nginx.tpl /opt/app/
 CMD python /opt/app/py-docker-gen.py \
      --filter hostname \
      --notify nginx-proxy \
-     --socket /tmp/docker.sock \
      /opt/app/nginx.tpl \
      /tmp/conf/proxy.conf
