@@ -1,7 +1,7 @@
 version: '2'
 services:
   nginx:
-    image: nginx
+    image: ckulka/rpi-nginx
     container_name: nginx-proxy
     ports:
       - "80:80"
@@ -9,7 +9,7 @@ services:
       - /etc/nginx/conf.d
 
   nginx-proxy:
-    image: bengosney/nginx-proxy
+    image: bengosney/nginx-proxy-rpi
     volumes_from:
       - nginx
     volumes:

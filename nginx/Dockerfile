@@ -1,4 +1,4 @@
-FROM bengosney/py-docker-gen
+FROM bengosney/py-docker-gen-rpi
 
 MAINTAINER Ben Gosney <bengosney@googlemail.com>
 
