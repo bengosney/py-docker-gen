@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo -e "\e[32mBuilding base image\e[0m"
+
+docker build -t bengosney/py-docker-gen .
+
+echo -e "\e[32mBuilding nginx image\e[0m"
+cd nginx
+docker build -t bengosney/nginx-proxy .
+
+echo -e "\e[32mDone\e[0m"
