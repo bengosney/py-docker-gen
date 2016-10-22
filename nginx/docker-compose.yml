@@ -1,7 +1,7 @@
 version: '2'
 services:
   nginx:
-    image: ckulka/rpi-nginx
+    image: lalyos/rpi-nginx
     container_name: nginx-proxy
     ports:
       - "80:80"
