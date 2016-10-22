@@ -25,11 +25,17 @@ old_md5 = '0000000000000000000000000'
 @click.option('--socket', default='unix://var/run/docker.sock')
 def cli(template, output, filter, listen, command, notify, socket):
     global client
+    global old_md5
+
     client = Client(base_url=socket)
+    old_md5 = md5File(output)
+
+    generateTemplate(template, output, filter)
+    checkAndNotify(output, command, notify)
+
     if listen:
         listenForEvents(template, output, filter, command, notify)
-    else:
-        generateTemplate(template, output, filter)
+
 
 def md5File(file):
     try:
@@ -60,30 +66,35 @@ def generateTemplate(template_name, output, filter=None):
 
     with open(output, 'w') as f:
         f.write(outputText)
-    
+
+
+def checkAndNotify(output, command=None, notify=None):
+    global old_md5
+
+    new_md5 = md5File(output)
+    if new_md5 != old_md5:
+        click.echo('File changed')
+        old_md5 = new_md5
+
+        if command != None:
+            click.echo("Running %s" % command)
+            subprocess.call(command, shell=True)
+        if notify != None:
+            click.echo("Sending SIGHUP to %s" % notify)
+            client.kill(notify, 1)        
+    else:
+        click.echo('No change')
+
 
 def listenForEvents(template, output, filter=None, command=None, notify=None):
+    global old_md5
     click.echo('Listening for docker events')
-    old_md5 = md5File(output)
     for raw_event in client.events():
         event = json.loads(raw_event)
         if 'status' in event and event['status'] in ['start', 'die']:
             click.echo("%s event" % event['status'])
             generateTemplate(template, output, filter)
-            
-            new_md5 = md5File(output)
-            if new_md5 != old_md5:
-                click.echo('File changed')
-                old_md5 = new_md5
-                if command != None:
-                    click.echo("Running %s" % command)
-                    subprocess.call(command, shell=True)
-                if notify != None:
-                    click.echo("Sending SIGHUP to %s" % notify)
-                    client.kill(notify, 1)
-            else:
-                click.echo('No change')
-
+            checkAndNotify(output, command, notify)
 
 if __name__ == '__main__':
     cli()
