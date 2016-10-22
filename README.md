@@ -23,3 +23,6 @@ Options:
 Jinja2 should be used for more things, it's not just for HTML templates.
 
 [Click](http://click.pocoo.org/6/) is amazing if your doing anything on the command line.
+
+## Why
+Why do this when docker-gen excists? I'm lazy, I couldn't get docker-gen to work and I'm too lazy to learn Go.
