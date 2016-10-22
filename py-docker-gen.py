@@ -12,7 +12,7 @@ import subprocess
 templateLoader = jinja2.FileSystemLoader( searchpath=os.getcwd() )
 templateEnv = jinja2.Environment( loader=templateLoader )
 
-client = Client(base_url='unix://var/run/docker.sock')
+client = None
 old_md5 = '0000000000000000000000000'
 
 @click.command()
@@ -22,14 +22,20 @@ old_md5 = '0000000000000000000000000'
 @click.option('--listen/--genarate', default=True, help='Either listen for changes or genrate a file now')
 @click.option('--command', default=None, help='Command to run when the file has been updated')
 @click.option('--notify', default=None, help='Container to notify of changes')
-def cli(template, output, filter, listen, command, notify):
+@click.option('--socket', default='unix://var/run/docker.sock')
+def cli(template, output, filter, listen, command, notify, socket):
+    global client
+    client = Client(base_url=socket)
     if listen:
         listenForEvents(template, output, filter, command, notify)
     else:
         generateTemplate(template, output, filter)
 
 def md5File(file):
-    return hashlib.md5(open(file, 'rb').read()).hexdigest()
+    try:
+        return hashlib.md5(open(file, 'rb').read()).hexdigest()
+    except:
+        return hashlib.md5('File not found').hexdigest()
 
 
 def generateTemplate(template_name, output, filter=None):
