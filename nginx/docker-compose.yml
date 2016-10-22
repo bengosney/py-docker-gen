@@ -1,0 +1,18 @@
+version: '2'
+services:
+  nginx:
+    image: nginx
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /etc/nginx/conf.d
+
+  nginx-proxy:
+    image: bengosney/nginx-proxy
+    volumes_from:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  
