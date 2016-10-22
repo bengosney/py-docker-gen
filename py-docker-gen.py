@@ -51,6 +51,8 @@ def generateTemplate(template_name, output, filter=None):
                 envs[bits[0]] = bits[1]
 
             details['Config']['Env'] = envs
+
+            details['NetworkSettings']['Ports'] = [port.split('/')[0] for port in details['NetworkSettings']['Ports']]
             context.append(details)
 
     template = templateEnv.get_template(template_name)
