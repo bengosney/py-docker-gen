@@ -1,26 +1,34 @@
 from docker import Client
 import jinja2
 import json
-import requests
 import os
 import re
 import click
-from urlparse import parse_qs, urlparse
 import hashlib
 import subprocess
 
-templateLoader = jinja2.FileSystemLoader( searchpath=os.getcwd() )
-templateEnv = jinja2.Environment( loader=templateLoader )
+templateLoader = jinja2.FileSystemLoader(searchpath=os.getcwd())
+templateEnv = jinja2.Environment(loader=templateLoader)
 
 client = None
 old_md5 = '0000000000000000000000000'
 
+
 @click.command()
 @click.argument('template')
 @click.argument('output')
-@click.option('--filter', default=None, help='Env Var that must be set for the containers')
-@click.option('--listen/--genarate', default=True, help='Either listen for changes or genrate a file now')
-@click.option('--command', default=None, help='Command to run when the file has been updated')
+@click.option(
+    '--filter',
+    default=None,
+    help='Env Var that must be set for the containers')
+@click.option(
+    '--listen/--genarate',
+    default=True,
+    help='Either listen for changes or genrate a file now')
+@click.option(
+    '--command',
+    default=None,
+    help='Command to run when the file has been updated')
 @click.option('--notify', default=None, help='Container to notify of changes')
 @click.option('--socket', default='unix://var/run/docker.sock')
 def cli(template, output, filter, listen, command, notify, socket):
@@ -50,7 +58,8 @@ def generateTemplate(template_name, output, filter=None):
 
     for container in client.containers():
         details = client.inspect_container(container['Id'])
-        if filter == None or any(filterregex.match(env) for env in details['Config']['Env']):
+        if filter is None or any(filterregex.match(env)
+                                 for env in details['Config']['Env']):
             envs = {}
             for env in details['Config']['Env']:
                 bits = env.split('=')
@@ -58,7 +67,9 @@ def generateTemplate(template_name, output, filter=None):
 
             details['Config']['Env'] = envs
 
-            details['NetworkSettings']['Ports'] = [port.split('/')[0] for port in details['NetworkSettings']['Ports']]
+            raw_ports = details['NetworkSettings']['Ports']
+            ports_out = [port.split('/')[0] for port in raw_ports]
+            details['NetworkSettings']['Ports'] = ports_out
             context.append(details)
 
     template = templateEnv.get_template(template_name)
@@ -76,12 +87,12 @@ def checkAndNotify(output, command=None, notify=None):
         click.echo('File changed')
         old_md5 = new_md5
 
-        if command != None:
+        if command is not None:
             click.echo("Running %s" % command)
             subprocess.call(command, shell=True)
-        if notify != None:
+        if notify is not None:
             click.echo("Sending SIGHUP to %s" % notify)
-            client.kill(notify, 1)        
+            client.kill(notify, 1)
     else:
         click.echo('No change')
 
