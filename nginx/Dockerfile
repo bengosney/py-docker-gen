@@ -2,7 +2,7 @@ FROM bengosney/py-docker-gen-rpi
 
 MAINTAINER Ben Gosney <bengosney@googlemail.com>
 
-COPY nginx.tpl /opt/app/
+COPY nginx.tpl /opt/app/nginx.tpl
 
 CMD python /opt/app/py-docker-gen.py \
      --filter hostname \
