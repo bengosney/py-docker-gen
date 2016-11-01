@@ -18,6 +18,12 @@ Options:
   --help                 Show this message and exit.
 ```
 
+
+### Templates
+
+The jinja2 templates have access to an array called `containers` that, suprisingly, contains all the containers. Eash container has all the info from `docker info`.
+
+
 ## Misc
 
 Jinja2 should be used for more things, it's not just for HTML templates.
