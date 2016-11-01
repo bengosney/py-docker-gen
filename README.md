@@ -24,6 +24,16 @@ Options:
 The jinja2 templates have access to an array called `containers` that, suprisingly, contains all the containers. Eash container has all the info from `docker info`.
 
 
+## RPI/ARM
+
+I'm currently working on rpi/arm docker build files. It's still a work in progress but you try it in the rpi branch, any help/patches would be gratefully received. 
+
+
+## Build Script
+
+I've also inclued a build script as I'm a great believer in having a simple, one command build process.
+
+
 ## Misc
 
 Jinja2 should be used for more things, it's not just for HTML templates.
