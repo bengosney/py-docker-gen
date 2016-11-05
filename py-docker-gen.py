@@ -9,7 +9,7 @@ from urlparse import parse_qs, urlparse
 import hashlib
 import subprocess
 
-templateLoader = jinja2.FileSystemLoader( searchpath=os.getcwd() )
+templateLoader = jinja2.FileSystemLoader( searchpath=os.path.dirname(os.path.realpath(__file__)) )
 templateEnv = jinja2.Environment( loader=templateLoader )
 
 client = None
@@ -50,16 +50,20 @@ def generateTemplate(template_name, output, filter=None):
 
     for container in client.containers():
         details = client.inspect_container(container['Id'])
-        if filter == None or any(filterregex.match(env) for env in details['Config']['Env']):
-            envs = {}
-            for env in details['Config']['Env']:
-                bits = env.split('=')
-                envs[bits[0]] = bits[1]
 
-            details['Config']['Env'] = envs
+        try:
+            if filter == None or any(filterregex.match(env) for env in details['Config']['Env']):
+                envs = {}
+                for env in details['Config']['Env']:
+                    bits = env.split('=')
+                    envs[bits[0]] = bits[1]
 
-            details['NetworkSettings']['Ports'] = [port.split('/')[0] for port in details['NetworkSettings']['Ports']]
-            context.append(details)
+                details['Config']['Env'] = envs
+        except:
+            pass
+
+        details['NetworkSettings']['Ports'] = [port.split('/')[0] for port in details['NetworkSettings']['Ports']]
+        context.append(details)
 
     template = templateEnv.get_template(template_name)
     outputText = template.render({'containers': context})
@@ -81,7 +85,10 @@ def checkAndNotify(output, command=None, notify=None):
             subprocess.call(command, shell=True)
         if notify != None:
             click.echo("Sending SIGHUP to %s" % notify)
-            client.kill(notify, 1)        
+            try:
+                client.kill(notify, 1)
+            except:
+                click.echo("Failed to send SIGHUP")
     else:
         click.echo('No change')
 
