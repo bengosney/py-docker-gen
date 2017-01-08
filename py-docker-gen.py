@@ -8,6 +8,7 @@ import click
 from urlparse import parse_qs, urlparse
 import hashlib
 import subprocess
+import pprint
 
 templateLoader = jinja2.FileSystemLoader( searchpath=os.path.dirname(os.path.realpath(__file__)) )
 templateEnv = jinja2.Environment( loader=templateLoader )
@@ -30,6 +31,9 @@ def cli(template, output, filter, listen, command, notify, socket):
     client = Client(base_url=socket)
     old_md5 = md5File(output)
 
+    if notify == None:
+        notify = getNotifyName()
+    
     generateTemplate(template, output, filter)
     checkAndNotify(output, command, notify)
 
@@ -45,24 +49,27 @@ def md5File(file):
 
 
 def generateTemplate(template_name, output, filter=None):
-    filterregex = re.compile('%s=.*' % filter)
+    filterregex = re.compile('%s=\w+' % filter)
     context = []
 
     for container in client.containers():
         details = client.inspect_container(container['Id'])
 
         try:
-            if filter == None or any(filterregex.match(env) for env in details['Config']['Env']):
+            if filter == None or any(filterregex.match(env) for env in details['Config']['Env']):                
                 envs = {}
                 for env in details['Config']['Env']:
                     bits = env.split('=')
-                    envs[bits[0]] = bits[1]
+                    if bits[1] != '':
+                        envs[bits[0]] = bits[1]
 
                 details['Config']['Env'] = envs
         except:
             pass
 
         details['NetworkSettings']['Ports'] = [port.split('/')[0] for port in details['NetworkSettings']['Ports']]
+        first_network = details['NetworkSettings']['Networks'].itervalues().next()
+        details['NetworkSettings']['FirstIPAddress'] = first_network['IPAddress']
         context.append(details)
 
     template = templateEnv.get_template(template_name)
@@ -71,7 +78,22 @@ def generateTemplate(template_name, output, filter=None):
     with open(output, 'w') as f:
         f.write(outputText)
 
+        
+def getNotifyName():
+    filterregex = re.compile('notify=me')
 
+    for container in client.containers():
+        details = client.inspect_container(container['Id'])
+
+        try:
+            if 'notify=me' in details['Config']['Env']:
+                return container['Names'][0][1:]
+        except:
+            pass
+
+    return None
+    
+        
 def checkAndNotify(output, command=None, notify=None):
     global old_md5
 
@@ -96,6 +118,8 @@ def checkAndNotify(output, command=None, notify=None):
 def listenForEvents(template, output, filter=None, command=None, notify=None):
     global old_md5
     click.echo('Listening for docker events')
+    notify = getNotifyName()
+    print "notify name: %s" % notify
     for raw_event in client.events():
         event = json.loads(raw_event)
         if 'status' in event and event['status'] in ['start', 'die']:
